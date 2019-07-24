@@ -1,0 +1,119 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!-- 配置
+ scan 若配置文件改变，则会自动加载
+ scanPeriod 设置我们的修改事件的时间间隔，默认的单位是：ms（毫秒）默认时间间隔设置为每分钟
+  这样设置后，我们修改配置后不需要重新启动服务器，它会自动去感知配置
+ dubug 设置为true会将logback配置中的信息就行输出
+ -->
+<configuration scan="true" scanPeriod="60 seconds" debug="false">
+<!--    定义参数常量-->
+<!--    日志级别： TRACE < DEBUG < INFO < WARN < ERROR -->
+    <property name="log.level" value="dubug"/>
+<!--    最大保存文件数量-->
+    <property name="log.maxHistory" value="30"/>
+<!--    文件存储路径 ${catalina.base} 表示tomcat的根目录-->
+    <property name="log.filePath" value="${catalina.base}/logs/webapps"/>
+<!--    日志展现格式
+    时间格式 %d{yyyy-MM-dd HH:mm:ss.SSS}+ 执行线程 [%thread] +
+     日志级别（缩进五格输入日志级别） %-5level + 哪个package哪个类里面的信息 %logger{50}-%msg
+     + 换行 %n-->
+    <property name="log.pattren" value="%d{yyyy-MM-dd HH:mm:ss.SSS}[%thread] %-5level %logger{50}-%msg%n"/>
+<!--    输出日志的媒介，控制台设置-->
+    <appender name="consoleAppender" class="ch.qos.logback.core.ConsoleAppender">
+<!--        转换成字符串，并将内容输出在文件中-->
+        <encoder>
+            <pattern>${log.pattren}</pattern>
+        </encoder>
+    </appender>
+
+<!--    DEBUG-->
+    <appender name="debugAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+<!--        文件路径-->
+        <file>${log.filePath}/debug.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+<!--            文件名称(绝对路径)-->
+            <fileNamePattern>${log.filePath}/debug/debug.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+<!--            文件最大的保存数量-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattren}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+<!--        过滤器，只记录debug level日志-->
+<!--        TODO 还有其他过滤器可以自行了解-->
+        <append>true</append>
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>DEBUG</level>
+<!--            符合level中的级别，处理方式 ACCEPT:记录-->
+            <onMatch>ACCEPT</onMatch>
+<!--            不符合level中的级别，处理方式 DENY:过滤-->
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--    INFO-->
+    <appender name="infoAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--        文件路径-->
+        <file>${log.filePath}/info.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--            文件名称(绝对路径)-->
+            <fileNamePattern>${log.filePath}/info/info.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!--            文件最大的保存数量-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattren}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!--        过滤器，只记录info level日志-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>INFO</level>
+            <!--            符合level中的级别，处理方式 ACCEPT:记录-->
+            <onMatch>ACCEPT</onMatch>
+            <!--            不符合level中的级别，处理方式 DENY:过滤-->
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+
+    <!--    ERROR-->
+    <appender name="errorAppender" class="ch.qos.logback.core.rolling.RollingFileAppender">
+        <!--        文件路径-->
+        <file>${log.filePath}/error.log</file>
+        <rollingPolicy class="ch.qos.logback.core.rolling.TimeBasedRollingPolicy">
+            <!--            文件名称(绝对路径)-->
+            <fileNamePattern>${log.filePath}/error/error.%d{yyyy-MM-dd}.log.gz</fileNamePattern>
+            <!--            文件最大的保存数量-->
+            <maxHistory>${log.maxHistory}</maxHistory>
+        </rollingPolicy>
+        <encoder>
+            <pattern>${log.pattren}</pattern>
+            <charset>UTF-8</charset>
+        </encoder>
+        <!--        过滤器，只记录error level日志-->
+        <filter class="ch.qos.logback.classic.filter.LevelFilter">
+            <level>ERROR</level>
+            <!--            符合level中的级别，处理方式 ACCEPT:记录-->
+            <onMatch>ACCEPT</onMatch>
+            <!--            不符合level中的级别，处理方式 DENY:过滤-->
+            <onMismatch>DENY</onMismatch>
+        </filter>
+    </appender>
+<!--    logger对象配置 配置路径，标识会关注此包下面的所有类文件-->
+<!--    additivity默认为true，设置为true logger中的内容会自动实现在root中，也就是root中会输出logger级别的所有日志
+    一个类中只能指定一个logger，因为logger中设置路径为项目根路径，所有的类文件都会自动写入相应级别的日志文件中，
+    又因为 additivity 设置为true，所以会自动将logger中的所有日志输出至控制台中-->
+    <logger name="com.xhh" level="${log.level}" additivity="true">
+<!--        与文件进行相应绑定,绑定后logger对象会向这三个文件中输出日志信息-->
+        <appender-ref ref="debugAppender"/>
+        <appender-ref ref="infoAppender"/>
+        <appender-ref ref="errorAppender"/>
+    </logger>
+<!--    root便签，就是一个特殊的logger标签
+    若logger中的level没有指定，logger就会自动继承root下的level-->
+    <root level="info">
+<!--        输出内容到控制台
+        和root相关的内容都会输出到控制台-->
+        <appender-ref ref="consoleAppender"/>
+    </root>
+</configuration>
